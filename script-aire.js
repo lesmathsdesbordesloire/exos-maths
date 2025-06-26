@@ -44,7 +44,7 @@
 })();
 
 function enregistrerReponse(prenom, exercice, reponse, correct) {
-  db.collection("reponses").add({
+  app.collection("reponses").add({
     prenom: prenom,
     exercice: exercice,
     reponse: reponse,
