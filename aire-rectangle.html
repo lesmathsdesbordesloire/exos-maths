@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Aire du rectangle</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="exercise latex-style">
+  <h2>Calcul de l’aire d’un rectangle</h2>
+  <svg id="rectSVG" width="320" height="220">
+    <rect id="rectShape" x="50" y="50" fill="#ADD8E6" stroke="#000"/>
+    <text id="labelL" font-size="14" fill="#000" text-anchor="middle"></text>
+    <text id="labell" font-size="14" fill="#000"></text>
+  </svg>
+  <p>Longueur : <span id="Ltext"></span> cm — Largeur : <span id="ltext"></span> cm</p>
+  <p><em>A</em> = <em>L</em> × <em>l</em></p>
+  <input type="number" id="answer" placeholder="Réponse en cm²">
+  <button id="btnCheck">Vérifier</button>
+  <p id="result"></p>
+  <script src="script-aire.js"></script>
+</body>
+</html>
