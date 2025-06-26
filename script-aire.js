@@ -45,8 +45,9 @@ function enregistrerReponse(prenom, exercice, reponse, correct) {
     exercice: exercice,
     reponse: reponse,
     correct: correct,
+    score: correct ? 1 : 0,
     timestamp: new Date()
   })
-  .then(() => console.log("Réponse enregistrée"))
-  .catch((error) => console.error("Erreur :", error));
+  .then(() => console.log("✅ Réponse enregistrée dans Firestore"))
+  .catch((error) => console.error("❌ Erreur Firebase :", error));
 }
