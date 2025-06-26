@@ -36,6 +36,8 @@
       res.textContent = `❌ Faux. L’aire est ${A} cm²`;
       res.style.color = 'red';
     }
+      const prenom = document.getElementById("prenom").value;
+  enregistrerReponse(prenom, "aire-rectangle", answer, answer === A);
   };
 })();
 
