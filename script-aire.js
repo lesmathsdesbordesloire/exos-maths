@@ -38,3 +38,15 @@
     }
   };
 })();
+
+function enregistrerReponse(prenom, exercice, reponse, correct) {
+  db.collection("reponses").add({
+    prenom: prenom,
+    exercice: exercice,
+    reponse: reponse,
+    correct: correct,
+    timestamp: new Date()
+  })
+  .then(() => console.log("Réponse enregistrée"))
+  .catch((error) => console.error("Erreur :", error));
+}
