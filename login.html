@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion élève</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 400px; margin: 5em auto; padding: 2em; border: 1px solid #ccc; border-radius: 10px; }
+    input { display: block; width: 100%; padding: 10px; margin: 1em 0; }
+    button { padding: 10px 20px; font-size: 1em; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h2>Connexion élève</h2>
+  <form id="loginForm">
+    <label for="email">Pseudo :</label>
+    <input type="text" id="email" placeholder="ex : hugo3">
+
+    <label for="password">Mot de passe :</label>
+    <input type="password" id="password">
+
+    <button type="submit">Se connecter</button>
+    <p class="error" id="errorMsg"></p>
+  </form>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDKp_KDWvKwX8wBoOXCnnj8gIRbGPZGJc",
+      authDomain: "mathsdesbordesloire.firebaseapp.com",
+      projectId: "mathsdesbordesloire",
+      storageBucket: "mathsdesbordesloire.firebasestorage.app",
+      messagingSenderId: "427572486543",
+      appId: "1:427572486543:web:b0adbcde55d348a9efebfa",
+      measurementId: "G-E86GKJJWT6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const form = document.getElementById("loginForm");
+    const errorMsg = document.getElementById("errorMsg");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim() + "@eleve.local";
+      const password = document.getElementById("password").value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = "aire-rectangle.html";
+      } catch (error) {
+        console.error(error);
+        errorMsg.textContent = "❌ Identifiants incorrects. Réessaie.";
+      }
+    });
+  </script>
+</body>
+</html>
