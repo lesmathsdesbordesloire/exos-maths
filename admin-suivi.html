@@ -3,16 +3,18 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Suivi des réponses élèves</title>
+  <title>Suivi des réponses des élèves</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 2em; }
-    table { border-collapse: collapse; width: 100%; margin-top: 1em; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f4f4f4; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f0f0f0; }
+    #btnLogout { margin-top: 1em; }
   </style>
 </head>
 <body>
-  <h1>Suivi des réponses des élèves</h1>
+  <h2>Suivi des réponses des élèves</h2>
+  <button id="btnLogout" onclick="deconnexion()">Se déconnecter</button>
   <table>
     <thead>
       <tr>
@@ -24,15 +26,13 @@
         <th>Date</th>
       </tr>
     </thead>
-    <tbody id="reponsesTableBody">
-      <tr><td colspan="6">Chargement...</td></tr>
-    </tbody>
+    <tbody id="table-body"></tbody>
   </table>
 
-  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCDKp_KDWvKwX8wBoOXCnnj8gIRbGPZGJc",
@@ -46,29 +46,37 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
-    const tableBody = document.getElementById("reponsesTableBody");
-    const q = query(collection(db, "reponses"), orderBy("timestamp", "desc"));
-
-    onSnapshot(q, (snapshot) => {
-      tableBody.innerHTML = "";
-      snapshot.forEach((doc) => {
-        const data = doc.data();
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        alert("Connexion requise pour voir le suivi.");
+        window.location.href = "login.html";
+        return;
+      }
+      const q = query(collection(db, "reponses"), orderBy("timestamp", "desc"));
+      const querySnapshot = await getDocs(q);
+      const tbody = document.getElementById("table-body");
+      querySnapshot.forEach((doc) => {
+        const d = doc.data();
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td>${data.prenom}</td>
-          <td>${data.exercice}</td>
-          <td>${data.reponse}</td>
-          <td>${data.correct ? "✅" : "❌"}</td>
-          <td>${data.score}</td>
-          <td>${new Date(data.timestamp.toDate()).toLocaleString("fr-FR")}</td>
+          <td>${d.prenom || ""}</td>
+          <td>${d.exercice}</td>
+          <td>${d.reponse}</td>
+          <td>${d.correct ? "✅" : "❌"}</td>
+          <td>${d.score}</td>
+          <td>${d.timestamp?.toDate().toLocaleString("fr-FR") || ""}</td>
         `;
-        tableBody.appendChild(row);
+        tbody.appendChild(row);
       });
-      if (snapshot.empty) {
-        tableBody.innerHTML = "<tr><td colspan='6'>Aucune donnée disponible.</td></tr>";
-      }
     });
+
+    window.deconnexion = function () {
+      signOut(auth).then(() => {
+        window.location.href = "login.html";
+      });
+    };
   </script>
 </body>
 </html>
