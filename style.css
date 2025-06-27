@@ -1,9 +1,7 @@
+
 body {
   font-family: 'Georgia', serif;
   margin: 2em;
-}
-.latex-style h2 {
-  font-family: 'Georgia', serif;
 }
 .exercise input, .exercise button {
   font-family: serif;
