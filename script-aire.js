@@ -70,14 +70,14 @@
 })();
 
 function enregistrerReponse(prenom, exercice, reponse, correct) {
-  app.collection("reponses").add({
-    prenom: prenom,
-    exercice: exercice,
-    reponse: reponse,
-    correct: correct,
-    score: correct ? 1 : 0,
-    timestamp: new Date()
-  })
+await addDoc(collection(db, "reponses"), {
+  prenom: prenom,
+  exercice: exercice,
+  reponse: reponse,
+  correct: correct,
+  score: correct ? 1 : 0,
+  timestamp: new Date()
+});
   .then(() => console.log("✅ Réponse enregistrée dans Firestore"))
   .catch((error) => console.error("❌ Erreur Firebase :", error));
 }
