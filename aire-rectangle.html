@@ -65,9 +65,11 @@
 
       if (utilisateur) {
         try {
+          const prenom = utilisateur.email.split("@")[0];
           await addDoc(collection(db, "reponses"), {
             uid: utilisateur.uid,
             email: utilisateur.email,
+            prenom: prenom,
             exercice: "Aire rectangle",
             reponse: reponse,
             correct: estCorrect,
