@@ -1,0 +1,84 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Exercice : Aire du rectangle</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 2em auto; }
+    label, input, button { display: block; margin: 1em 0; width: 100%; }
+    .result { margin-top: 1em; font-weight: bold; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h2>Exercice : Calculer l'aire du rectangle</h2>
+  <p><strong>Consigne :</strong> Calcule l'aire d’un rectangle de 7 cm de long et 4 cm de large.</p>
+
+  <label for="reponse">Ton résultat en cm² :</label>
+  <input type="number" id="reponse" />
+
+  <button onclick="verifierReponse()">Vérifier</button>
+
+  <p class="result" id="resultat"></p>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDKp_KDWvKwX8wBoOXCnnj8gIRbGPZGJc",
+      authDomain: "mathsdesbordesloire.firebaseapp.com",
+      projectId: "mathsdesbordesloire",
+      storageBucket: "mathsdesbordesloire.firebasestorage.app",
+      messagingSenderId: "427572486543",
+      appId: "1:427572486543:web:b0adbcde55d348a9efebfa",
+      measurementId: "G-E86GKJJWT6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let utilisateur = null;
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        utilisateur = user;
+      } else {
+        alert("Tu dois être connecté pour faire cet exercice.");
+        window.location.href = "login.html";
+      }
+    });
+
+    window.verifierReponse = async function () {
+      const reponse = parseFloat(document.getElementById("reponse").value);
+      const resultat = document.getElementById("resultat");
+      const estCorrect = reponse === 28;
+      const score = estCorrect ? 1 : 0;
+
+      resultat.textContent = estCorrect
+        ? "✅ Bravo, c’est la bonne réponse !"
+        : "❌ Ce n’est pas la bonne réponse.";
+
+      if (utilisateur) {
+        try {
+          await addDoc(collection(db, "reponses"), {
+            uid: utilisateur.uid,
+            email: utilisateur.email,
+            exercice: "Aire rectangle",
+            reponse: reponse,
+            correct: estCorrect,
+            score: score,
+            timestamp: serverTimestamp()
+          });
+        } catch (e) {
+          console.error("Erreur lors de l'enregistrement :", e);
+        }
+      }
+    };
+  </script>
+</body>
+</html>
