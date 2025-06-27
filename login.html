@@ -51,7 +51,8 @@
 
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        window.location.href = "aire-rectangle.html";
+        window.location.href = "aire-rectangle-multi.html";
+        //window.location.href = "aire-rectangle.html";
       } catch (error) {
         console.error(error);
         errorMsg.textContent = "❌ Identifiants incorrects. Réessaie.";
