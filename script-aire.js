@@ -1,3 +1,11 @@
+
+
+</script>
+
+
+(function(){
+
+
 <script type="module">
   // Import the functions you need from the SDKs you need
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
@@ -21,10 +29,9 @@
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
 
-</script>
 
 
-(function(){
+  
   const L = Math.floor(Math.random() * 11) + 10;
   const l = Math.floor(Math.random() * 6) + 5;
   const A = L * l;
