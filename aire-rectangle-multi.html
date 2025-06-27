@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Exercice progressif : Aire de rectangles</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 2em auto; }
+    .rectangle { margin: 1em 0; }
+    label, input, button { display: block; margin: 1em 0; width: 100%; }
+    .result { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>Exercice progressif : Calcul de l'aire de rectangles</h2>
+  <p id="consigne"></p>
+  <div id="svgContainer" class="rectangle"></div>
+
+  <label for="reponse">Ton résultat en cm² :</label>
+  <input type="number" id="reponse" step="0.01" />
+
+  <button onclick="verifierReponse()">Valider</button>
+  <p class="result" id="feedback"></p>
+  <p id="scoreFinal" style="display:none; font-weight:bold;"></p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDKp_KDWvKwX8wBoOXCnnj8gIRbGPZGJc",
+      authDomain: "mathsdesbordesloire.firebaseapp.com",
+      projectId: "mathsdesbordesloire",
+      storageBucket: "mathsdesbordesloire.firebasestorage.app",
+      messagingSenderId: "427572486543",
+      appId: "1:427572486543:web:b0adbcde55d348a9efebfa",
+      measurementId: "G-E86GKJJWT6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let utilisateur = null;
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        utilisateur = user;
+        demarrerExercice();
+      } else {
+        alert("Tu dois être connecté pour faire cet exercice.");
+        window.location.href = "login.html";
+      }
+    });
+
+    const questions = [
+      { L: 4, l: 3 },
+      { L: 7, l: 4 },
+      { L: 12, l: 5 },
+      { L: 6.2, l: 3.5 },
+      { L: 15.4, l: 8.6 }
+    ];
+    let index = 0;
+    let score = 0;
+
+    function demarrerExercice() {
+      afficherQuestion();
+    }
+
+    function afficherQuestion() {
+      const { L, l } = questions[index];
+      document.getElementById("consigne").textContent =
+        `Question ${index + 1}/5 : Calcule l'aire d’un rectangle de ${L} cm de long et ${l} cm de large.`;
+      dessinerSVG(L, l);
+      document.getElementById("reponse").value = "";
+      document.getElementById("feedback").textContent = "";
+    }
+
+    function dessinerSVG(L, l) {
+      const scale = 20;
+      const width = L * scale;
+      const height = l * scale;
+      const svg = `
+        <svg width="${width + 20}" height="${height + 40}">
+          <rect x="10" y="10" width="${width}" height="${height}" fill="#e0f0ff" stroke="#000" stroke-width="2"/>
+          <text x="${10 + width/2}" y="${height + 30}" text-anchor="middle" font-size="14">${L} cm</text>
+          <text x="5" y="${10 + height/2}" text-anchor="end" font-size="14" transform="rotate(-90 5,${10 + height/2})">${l} cm</text>
+        </svg>`;
+      document.getElementById("svgContainer").innerHTML = svg;
+    }
+
+    window.verifierReponse = async function () {
+      const r = parseFloat(document.getElementById("reponse").value);
+      const { L, l } = questions[index];
+      const attendu = +(L * l).toFixed(2);
+      const estCorrect = Math.abs(r - attendu) < 0.01;
+      if (estCorrect) score++;
+      document.getElementById("feedback").textContent = estCorrect ? "✅ Bravo !" : `❌ Mauvaise réponse. L'aire était ${attendu} cm²`;
+
+      if (utilisateur) {
+        const prenom = utilisateur.email.split("@")[0];
+        await addDoc(collection(db, "reponses"), {
+          uid: utilisateur.uid,
+          email: utilisateur.email,
+          prenom: prenom,
+          exercice: `Aire rectangle Q${index + 1}`,
+          reponse: r,
+          correct: estCorrect,
+          score: estCorrect ? 1 : 0,
+          timestamp: serverTimestamp()
+        });
+      }
+
+      index++;
+      if (index < questions.length) {
+        setTimeout(afficherQuestion, 1500);
+      } else {
+        document.getElementById("scoreFinal").style.display = "block";
+        document.getElementById("scoreFinal").textContent = `🎯 Exercice terminé ! Ton score est ${score}/5`;
+      }
+    };
+  </script>
+</body>
+</html>
