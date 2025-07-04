@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Exercice : Aire d’un rectangle</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 1em; }
+    svg { margin: 1em auto; display: block; }
+    .result { font-weight: bold; }
+    @media screen and (max-width: 600px) {
+      body { font-size: 16px; }
+      input, button { font-size: 1em; }
+    }
+  </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDKp_KDWvKwX8wBoOXCnnj8gIRbGPZGJc",
+      authDomain: "mathsdesbordesloire.firebaseapp.com",
+      projectId: "mathsdesbordesloire",
+      storageBucket: "mathsdesbordesloire.appspot.com",
+      messagingSenderId: "427572486543",
+      appId: "1:427572486543:web:b0adbcde55d348a9efebfa",
+      measurementId: "G-E86GKJJWT6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const niveau = "moyen";
+    const exerciceNom = "aire-rectangle";
+
+    function getEntier(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function getDecimal(min, max, precision = 1) {
+      const factor = 10 ** precision;
+      return Math.round((Math.random() * (max - min) + min) * factor) / factor;
+    }
+
+    function genererDimensions(niveau) {
+      let L, l;
+      switch (niveau) {
+        case "facile":
+          L = getEntier(1, 9);
+          l = getEntier(1, 9);
+          break;
+        case "moyen":
+          L = getEntier(10, 30);
+          l = getEntier(10, 30);
+          break;
+        case "fort":
+          L = getDecimal(5, 20, 1);
+          l = getDecimal(5, 20, 1);
+          break;
+        case "difficile":
+          L = getDecimal(-10, 50, 3);
+          l = getDecimal(-10, 50, 3);
+          break;
+        default:
+          L = 5; l = 3;
+      }
+      return { L, l };
+    }
+
+    const { L, l } = genererDimensions(niveau);
+    const aire = +(L * l).toFixed(2);
+    window.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("consigne").textContent =
+        `Calcule l’aire d’un rectangle de ${L} cm de long et ${l} cm de large.`;
+      document.getElementById("rectShape").setAttribute("width", L * 6);
+      document.getElementById("rectShape").setAttribute("height", l * 6);
+      document.getElementById("labelL").setAttribute("x", 10 + (L * 6) / 2);
+      document.getElementById("labelL").textContent = `${L} cm`;
+      const yLabelL = 10 + (l * 6) / 2;
+      document.getElementById("labell").setAttribute("y", yLabelL);
+      document.getElementById("labell").setAttribute("transform", `rotate(-90 5,${yLabelL})`);
+      document.getElementById("labell").textContent = `${l} cm`;
+    });
+
+    window.verifier = async function () {
+      const prenom = document.getElementById("prenom").value.trim();
+      const r = parseFloat(document.getElementById("reponse").value);
+      const estCorrect = Math.abs(r - aire) < 0.01;
+      const feedback = estCorrect
+        ? "✅ Bravo !"
+        : `❌ Mauvaise réponse. L'aire était ${aire} cm².`;
+      document.getElementById("feedback").textContent = feedback;
+
+      if (prenom) {
+        await addDoc(collection(db, "reponses"), {
+          prenom: prenom,
+          exercice: exerciceNom,
+          niveau: niveau,
+          score: estCorrect ? 1 : 0,
+          timestamp: serverTimestamp()
+        });
+      }
+    };
+  </script>
+</head>
+<body>
+  <h2>Exercice : Aire d’un rectangle</h2>
+  <label for="prenom">Ton prénom :</label>
+  <input type="text" id="prenom" />
+
+  <p id="consigne"></p>
+  <svg id="svg-rectangle" viewBox="0 0 300 200" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg">
+    <rect id="rectShape" x="10" y="10" width="200" height="100" fill="#e0f0ff" stroke="#000" stroke-width="2"/>
+    <text id="labelL" x="110" y="140" text-anchor="middle" font-size="14">L cm</text>
+    <text id="labell" x="5" y="70" text-anchor="end" font-size="14" transform="rotate(-90 5,70)">l cm</text>
+  </svg>
+
+  <label for="reponse">Ton résultat en cm² :</label>
+  <input type="number" id="reponse" step="0.01" />
+  <button onclick="verifier()">Valider</button>
+  <p class="result" id="feedback"></p>
+</body>
+</html>
