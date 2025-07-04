@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Série adaptative : Aire de rectangles</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 1em; }
+    svg { margin: 1em auto; display: block; }
+    .result { font-weight: bold; }
+    #progressionBar { display: flex; gap: 5px; margin: 1em 0; }
+    .progress-segment {
+      flex: 1;
+      text-align: center;
+      color: white;
+      font-size: 12px;
+      line-height: 1.2;
+      padding: 5px;
+      border-radius: 5px;
+    }
+    @media screen and (max-width: 600px) {
+      body { font-size: 16px; }
+      input, button { font-size: 1em; }
+    }
+  </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCDKp_KDWvKwX8wBoOXCnnj8gIRbGPZGJc",
+      authDomain: "mathsdesbordesloire.firebaseapp.com",
+      projectId: "mathsdesbordesloire",
+      storageBucket: "mathsdesbordesloire.appspot.com",
+      messagingSenderId: "427572486543",
+      appId: "1:427572486543:web:b0adbcde55d348a9efebfa",
+      measurementId: "G-E86GKJJWT6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const niveaux = ["facile", "moyen", "fort", "difficile"];
+    let niveauIndex = 0;
+    const exerciceNom = "serie-adaptative-aire";
+    let current = 0;
+    const total = 4;
+
+    function getEntier(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function getDecimal(min, max, precision = 1) {
+      const factor = 10 ** precision;
+      return Math.round((Math.random() * (max - min) + min) * factor) / factor;
+    }
+
+    function genererDimensions(niveau) {
+      let L, l;
+      switch (niveau) {
+        case "facile":
+          L = getEntier(1, 9);
+          l = getEntier(1, 9);
+          break;
+        case "moyen":
+          L = getEntier(10, 30);
+          l = getEntier(10, 30);
+          break;
+        case "fort":
+          L = getDecimal(5, 20, 1);
+          l = getDecimal(5, 20, 1);
+          break;
+        case "difficile":
+          L = getDecimal(-10, 50, 3);
+          l = getDecimal(-10, 50, 3);
+          break;
+        default:
+          L = 5; l = 3;
+      }
+      return { L, l };
+    }
+
+    let aireAttendue = 0;
+
+    function afficherExercice() {
+      const niveau = niveaux[niveauIndex];
+      const { L, l } = genererDimensions(niveau);
+      aireAttendue = +(L * l).toFixed(2);
+      document.getElementById("consigne").textContent =
+        `Exercice ${current + 1}/${total} (niveau : ${niveau}) → Calcule l’aire d’un rectangle de ${L} cm × ${l} cm.`;
+
+      const svg = `
+        <svg viewBox="0 0 300 200" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="10" width="${L * 6}" height="${l * 6}" fill="#e0f0ff" stroke="#000" stroke-width="2"/>
+          <text x="${10 + (L * 6) / 2}" y="${10 + l * 6 + 20}" text-anchor="middle" font-size="14">${L} cm</text>
+          <text x="5" y="${10 + (l * 6) / 2}" text-anchor="end" font-size="14" transform="rotate(-90 5,${10 + (l * 6) / 2})">${l} cm</text>
+        </svg>`;
+      document.getElementById("svgContainer").innerHTML = svg;
+      document.getElementById("reponse").value = "";
+      document.getElementById("feedback").textContent = "";
+    }
+
+    function ajouterSegment(niveau, correct) {
+      const couleur = correct ? "green" : "red";
+      const segment = document.createElement("div");
+      segment.className = "progress-segment";
+      segment.style.backgroundColor = couleur;
+      segment.textContent = niveau;
+      document.getElementById("progressionBar").appendChild(segment);
+    }
+
+    async function verifier() {
+      const prenom = document.getElementById("prenom").value.trim();
+      const r = parseFloat(document.getElementById("reponse").value);
+      const estCorrect = Math.abs(r - aireAttendue) < 0.01;
+      const feedback = estCorrect
+        ? "✅ Bravo !"
+        : `❌ Mauvaise réponse. L'aire était ${aireAttendue} cm².`;
+      document.getElementById("feedback").textContent = feedback;
+
+      const niveau = niveaux[niveauIndex];
+
+      ajouterSegment(niveau, estCorrect);
+
+      if (prenom) {
+        await addDoc(collection(db, "reponses"), {
+          prenom: prenom,
+          exercice: exerciceNom,
+          niveau: niveau,
+          score: estCorrect ? 1 : 0,
+          timestamp: serverTimestamp()
+        });
+      }
+
+      if (estCorrect && niveauIndex < niveaux.length - 1) niveauIndex++;
+      else if (!estCorrect && niveauIndex > 0) niveauIndex--;
+
+      current++;
+      if (current < total) {
+        setTimeout(afficherExercice, 1500);
+      } else {
+        document.getElementById("final").textContent = "🎯 Série terminée ! Merci pour ta participation.";
+        document.getElementById("btnValider").disabled = true;
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", afficherExercice);
+    window.verifier = verifier;
+  </script>
+</head>
+<body>
+  <h2>Série adaptative : Aire de rectangles</h2>
+  <label for="prenom">Ton prénom :</label>
+  <input type="text" id="prenom" />
+  <div id="progressionBar"></div>
+  <p id="consigne"></p>
+  <div id="svgContainer"></div>
+  <input type="number" id="reponse" step="0.01" placeholder="Réponse en cm²" />
+  <button id="btnValider" onclick="verifier()">Valider</button>
+  <p class="result" id="feedback"></p>
+  <p id="final" style="font-weight: bold;"></p>
+</body>
+</html>
